@@ -1,6 +1,6 @@
 <?php
 require_once 'db_connect.php';
-
+require_once 'supabase_client.php';
 // Get POST data
 $name = trim($_POST['name']);
 $email = trim($_POST['email']);

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'db_connect.php';
-
+require_once 'supabase_client.php';
 // Read form data
 $email = trim($_POST['email'] ?? '');
 $password = trim($_POST['password'] ?? '');
