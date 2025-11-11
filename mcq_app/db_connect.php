@@ -1,38 +1,39 @@
 <?php
-// db_connect.php — Supabase connection (Render-friendly)
+// db_connect.php — Final Render + Supabase connection for DB: mcq_test
 
 $host = "db.ljmengkmgbxevbenagjw.supabase.co";
 $port = "5432";
-$dbname = "postgres"; // Supabase default
-$user = "postgres";
+$dbname = "mcq_test"; // ✅ your actual DB name
+$user = "test";
 $password = "test123";
 
-// 🔹 Build a connection string with SSL required (needed by Supabase)
-$conn_string = "host=$host port=$port dbname=$dbname user=$user password=$password sslmode=require";
+// 🔹 Force IPv4 (Render free tier often lacks IPv6)
+$ipv4 = gethostbyname($host);
 
-// Try normal connection
+// 🔹 Build connection string with SSL (Supabase requires it)
+$conn_string = "host=$ipv4 port=$port dbname=$dbname user=$user password=$password sslmode=require";
+
+// 🔹 Attempt connection
 $conn = @pg_connect($conn_string);
 
-// If normal fails (usually due to IPv6), try IPv4 fallback
+// 🔹 Check connection and handle errors safely
 if (!$conn) {
-    $ipv4 = gethostbyname($host); // resolves to IPv4
-    if ($ipv4 && $ipv4 !== $host) {
-        $conn_string_v4 = "host=$ipv4 port=$port dbname=$dbname user=$user password=$password sslmode=require";
-        $conn = @pg_connect($conn_string_v4);
-    }
+    $php_err = error_get_last();
+    echo "<pre style='color:red;font-family:monospace'>";
+    echo "❌ PostgreSQL Connection Failed\n";
+    echo "Host: $host\n";
+    echo "Resolved IPv4: $ipv4\n";
+    echo "Port: $port\n";
+    echo "Database: $dbname\n";
+    echo "User: $user\n";
+    echo "Error: " . ($php_err['message'] ?? 'Unknown') . "\n";
+    echo "</pre>";
+    exit;
 }
 
-// If still not connected, stop with detailed message
-if (!$conn) {
-    die("❌ Unable to connect to Supabase database.<br>" .
-        "Error: " . htmlspecialchars(pg_last_error()) . "<br>" .
-        "Host: $host<br>" .
-        "Resolved IPv4: " . htmlspecialchars($ipv4 ?? 'n/a') . "<br>" .
-        "Check if Supabase allows external connections.");
-}
+// ✅ Connected successfully — optionally set schema
+// @pg_query($conn, "SET search_path TO mcq_test;");
 
-// Optional: set your schema
-pg_query($conn, "SET search_path TO mcq_test;");
-
-// ✅ Ready to use
+// ✅ You can now use $conn in all other scripts
+// echo "<pre style='color:green'>✅ Connected to Supabase DB (mcq_test) successfully!</pre>";
 ?>
